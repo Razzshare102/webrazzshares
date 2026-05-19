@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, Star, Quote } from 'lucide-react'
 import ScrollReveal from '../ui/ScrollReveal'
 import { useTestimonials } from '../../hooks/useSupabase'
 
-// Fallback demo testimonials
 const DEMO_TESTIMONIALS = [
   {
     id: 1,
@@ -35,7 +34,7 @@ const DEMO_TESTIMONIALS = [
     name: 'Priya Sharma',
     position: 'CMO',
     company: 'Web3 Gaming Studio',
-    feedback: 'RazzShares is one of the best Web3 community builders I\'ve worked with. Their threads go viral regularly, they understand the space deeply, and their engagement rates are consistently outstanding.',
+    feedback: "RazzShares is one of the best Web3 community builders I've worked with. Their threads go viral regularly, they understand the space deeply, and their engagement rates are consistently outstanding.",
     rating: 5,
   },
 ]
@@ -43,15 +42,15 @@ const DEMO_TESTIMONIALS = [
 function StarRating({ count = 5 }) {
   return (
     <div className="flex gap-0.5">
-      {[...Array(count)].map((_, i) => (
-        <Star key={i} size={14} className="text-yellow-400 fill-yellow-400" />
+      {[...Array(Math.min(count, 5))].map((_, i) => (
+        <Star key={i} size={13} className="text-yellow-400 fill-yellow-400" />
       ))}
     </div>
   )
 }
 
 export default function TestimonialsSection() {
-  const { data: dbTestimonials, loading } = useTestimonials()
+  const { data: dbTestimonials } = useTestimonials()
   const testimonials = dbTestimonials.length > 0 ? dbTestimonials : DEMO_TESTIMONIALS
 
   const [current, setCurrent] = useState(0)
@@ -68,47 +67,36 @@ export default function TestimonialsSection() {
     setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)
   }, [testimonials.length])
 
-  // Autoplay
   useEffect(() => {
     if (!autoplay || testimonials.length <= 1) return
-    const timer = setInterval(goNext, 5000)
+    const timer = setInterval(goNext, 5500)
     return () => clearInterval(timer)
   }, [autoplay, goNext, testimonials.length])
 
   const slideVariants = {
-    enter: (dir) => ({
-      x: dir > 0 ? 60 : -60,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir) => ({
-      x: dir > 0 ? -60 : 60,
-      opacity: 0,
-    }),
+    enter: (dir) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   }
 
-  const current_t = testimonials[current]
+  const t = testimonials[current]
 
   return (
     <section className="relative py-24 overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at 30% 70%, rgba(0,212,255,0.03) 0%, transparent 60%)',
-        }}
+        style={{ background: 'radial-gradient(ellipse at 30% 70%, rgba(0,212,255,0.03) 0%, transparent 60%)' }}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal className="text-center mb-16">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-4"
-            style={{ background: 'rgba(0,212,255,0.08)', border: '1px solid rgba(0,212,255,0.2)', color: '#00d4ff' }}
+        {/* Header */}
+        <ScrollReveal className="text-center mb-14">
+          <span
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-4"
+            style={{ background: 'rgba(0,212,255,0.07)', border: '1px solid rgba(0,212,255,0.18)', color: '#67e8f9' }}
           >
             Client Love
-          </div>
+          </span>
           <h2 className="section-heading neon-text mb-4">Testimonials</h2>
           <p className="text-gray-500 text-lg">What project founders say about working with me</p>
         </ScrollReveal>
@@ -127,52 +115,60 @@ export default function TestimonialsSection() {
             {/* Top glow */}
             <div
               className="absolute top-0 left-0 right-0 h-px"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent)' }}
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.5), rgba(124,58,237,0.5), transparent)' }}
             />
 
             {/* Quote icon */}
-            <div
-              className="absolute top-8 right-8 opacity-10"
-              style={{ color: '#00d4ff' }}
-            >
-              <Quote size={60} />
+            <div className="absolute top-8 right-8 opacity-[0.06]">
+              <Quote size={72} style={{ color: '#00d4ff' }} />
             </div>
 
-            {/* Testimonial content */}
-            <div className="relative min-h-[200px]">
+            {/* Slide content */}
+            <div className="relative min-h-[220px]">
               <AnimatePresence custom={direction} mode="wait">
                 <motion.div
-                  key={current_t?.id || current}
+                  key={t?.id ?? current}
                   custom={direction}
                   variants={slideVariants}
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <StarRating count={current_t?.rating || 5} />
+                  <StarRating count={t?.rating || 5} />
 
-                  <blockquote className="mt-6 text-lg lg:text-xl text-gray-300 leading-relaxed font-light italic mb-8">
-                    "{current_t?.feedback}"
+                  <blockquote className="mt-5 text-lg lg:text-xl text-gray-200 leading-relaxed font-light italic mb-8">
+                    "{t?.feedback}"
                   </blockquote>
 
                   <div className="flex items-center gap-4">
                     {/* Avatar */}
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
-                      style={{
-                        background: 'linear-gradient(135deg, #00d4ff20, #7c3aed20)',
-                        border: '2px solid rgba(0,212,255,0.2)',
-                        color: '#00d4ff',
-                      }}
-                    >
-                      {current_t?.name?.[0] || 'A'}
-                    </div>
-
+                    {t?.avatar_url ? (
+                      <img
+                        src={t.avatar_url}
+                        alt={t.name}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                        style={{ border: '2px solid rgba(0,212,255,0.25)' }}
+                      />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,58,237,0.15))',
+                          border: '2px solid rgba(0,212,255,0.25)',
+                          color: '#00d4ff',
+                        }}
+                      >
+                        {t?.name?.[0] || 'A'}
+                      </div>
+                    )}
                     <div>
-                      <p className="font-semibold text-white">{current_t?.name}</p>
+                      <p className="font-bold text-white">{t?.name}</p>
                       <p className="text-gray-500 text-sm">
-                        {current_t?.position}{current_t?.company ? ` · ${current_t.company}` : ''}
+                        {t?.position}
+                        {t?.company ? (
+                          <span className="text-gray-600"> · {t.company}</span>
+                        ) : null}
                       </p>
                     </div>
                   </div>
@@ -181,69 +177,52 @@ export default function TestimonialsSection() {
             </div>
 
             {/* Controls */}
-            <div className="flex items-center justify-between mt-8">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
               {/* Dots */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 {testimonials.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      setDirection(i > current ? 1 : -1)
-                      setCurrent(i)
-                    }}
-                    className="transition-all duration-300 rounded-full"
+                    onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i) }}
+                    className="rounded-full transition-all duration-300"
                     style={{
-                      width: i === current ? '24px' : '8px',
+                      width: i === current ? '28px' : '8px',
                       height: '8px',
                       background: i === current
                         ? 'linear-gradient(90deg, #00d4ff, #7c3aed)'
-                        : 'rgba(255,255,255,0.15)',
+                        : 'rgba(255,255,255,0.12)',
                     }}
-                    aria-label={`Go to testimonial ${i + 1}`}
+                    aria-label={`Testimonial ${i + 1}`}
                   />
                 ))}
               </div>
 
-              {/* Arrow buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={goPrev}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#9ca3af',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'
-                    e.currentTarget.style.color = '#00d4ff'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                    e.currentTarget.style.color = '#9ca3af'
-                  }}
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={goNext}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-110"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#9ca3af',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'
-                    e.currentTarget.style.color = '#00d4ff'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                    e.currentTarget.style.color = '#9ca3af'
-                  }}
-                >
-                  <ChevronRight size={18} />
-                </button>
+              {/* Arrows */}
+              <div className="flex gap-2">
+                {[{onClick: goPrev, icon: ChevronLeft}, {onClick: goNext, icon: ChevronRight}].map(({onClick, icon: Icon}, idx) => (
+                  <button
+                    key={idx}
+                    onClick={onClick}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.09)',
+                      color: '#9ca3af',
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)'
+                      e.currentTarget.style.color = '#00d4ff'
+                      e.currentTarget.style.background = 'rgba(0,212,255,0.06)'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)'
+                      e.currentTarget.style.color = '#9ca3af'
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                    }}
+                  >
+                    <Icon size={18} />
+                  </button>
+                ))}
               </div>
             </div>
           </div>

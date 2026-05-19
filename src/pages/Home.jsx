@@ -10,11 +10,11 @@ export default function Home() {
     description: 'Helping crypto projects grow through content, engagement, and ecosystem building.',
   })
   return (
-    <div>
+    <main>
       <HeroSection />
       <StatsSection />
       <ServicesSection />
       <TestimonialsSection />
-    </div>
+    </main>
   )
 }
