@@ -20,7 +20,7 @@
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
   }
 
   ::-webkit-scrollbar-track {
@@ -32,9 +32,19 @@
     border-radius: 3px;
   }
 
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #00d4ff, #f472b6);
+  }
+
   ::selection {
-    background: rgba(0, 212, 255, 0.3);
+    background: rgba(0, 212, 255, 0.25);
     color: #fff;
+  }
+
+  /* Fix select / option dark styling */
+  select option {
+    background-color: #0a1628;
+    color: #e2e8f0;
   }
 }
 
@@ -96,11 +106,15 @@
     transform: translateY(-2px);
   }
 
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
   .btn-primary::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
     opacity: 0;
     transition: opacity 0.3s;
   }
@@ -121,6 +135,10 @@
     border-color: rgba(0, 212, 255, 0.8);
     box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
     transform: translateY(-2px);
+  }
+
+  .btn-secondary:active {
+    transform: translateY(0);
   }
 
   .section-heading {
@@ -144,12 +162,17 @@
     @apply w-full px-4 py-3 rounded-xl text-white placeholder-gray-500 outline-none transition-all duration-300;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    color-scheme: dark;
   }
 
   .input-field:focus {
     border-color: rgba(0, 212, 255, 0.5);
-    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
     background: rgba(255, 255, 255, 0.06);
+  }
+
+  .input-field::placeholder {
+    color: rgba(156, 163, 175, 0.6);
   }
 
   .glow-orb {
@@ -173,11 +196,25 @@
     background-image: 
       linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-size: 50px 50px;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
-/* Custom cursor */
+/* ── Custom Cursor ── */
 .cursor-dot {
   width: 8px;
   height: 8px;
@@ -186,29 +223,30 @@
   position: fixed;
   pointer-events: none;
   z-index: 9999;
-  transition: transform 0.1s ease;
+  transition: transform 0.1s ease, width 0.15s ease, height 0.15s ease;
   box-shadow: 0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(0, 212, 255, 0.4);
+  mix-blend-mode: screen;
 }
 
 .cursor-ring {
   width: 32px;
   height: 32px;
-  border: 1px solid rgba(0, 212, 255, 0.5);
+  border: 1.5px solid rgba(0, 212, 255, 0.5);
   border-radius: 50%;
   position: fixed;
   pointer-events: none;
   z-index: 9998;
-  transition: transform 0.15s ease, width 0.2s ease, height 0.2s ease;
+  transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
 }
 
-/* Loading screen */
+/* ── Loading bar shimmer ── */
 .loading-bar {
   background: linear-gradient(90deg, transparent, #00d4ff, #7c3aed, transparent);
   background-size: 200% 100%;
   animation: shimmer 1.5s linear infinite;
 }
 
-/* Particles */
+/* ── Particles ── */
 .particle {
   position: absolute;
   width: 2px;
@@ -218,7 +256,118 @@
   pointer-events: none;
 }
 
-/* Toast customization */
-.toaster-container {
-  z-index: 9999 !important;
+/* ── Glowing divider ── */
+.glow-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), rgba(124,58,237,0.4), transparent);
+}
+
+/* ── Gradient text animation ── */
+.animated-gradient-text {
+  background: linear-gradient(270deg, #00d4ff, #7c3aed, #f472b6, #00d4ff);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* ── Typewriter cursor ── */
+.typewriter-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Number glow pulse ── */
+.number-glow {
+  animation: number-glow 3s ease-in-out infinite;
+}
+
+@keyframes number-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px currentColor); }
+  50% { filter: drop-shadow(0 0 20px currentColor) drop-shadow(0 0 40px currentColor); }
+}
+
+/* ── Card entrance ── */
+@keyframes card-entrance {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Orbit ── */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+/* ── Hero badge pulse ── */
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.4); }
+  70%       { box-shadow: 0 0 0 8px rgba(0,212,255,0); }
+}
+
+.badge-pulse {
+  animation: badge-pulse 2s ease-out infinite;
+}
+
+/* ── Noise overlay for premium feel ── */
+.noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.4;
+}
+
+/* ── Scroll reveal transitions ── */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(32px);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* ── Admin ── */
+.admin-sidebar-link-active {
+  background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,58,237,0.07));
+  border: 1px solid rgba(0,212,255,0.15);
+  color: white;
+}
+
+/* ── Mobile touch improvements ── */
+@media (hover: none) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none !important;
+  }
+}
+
+/* ── Focus visible ── */
+:focus-visible {
+  outline: 2px solid rgba(0, 212, 255, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Smooth transitions ── */
+*, *::before, *::after {
+  transition-property: none;
+}
+
+/* Re-enable for interactive elements */
+a, button, input, textarea, select, [role="button"] {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
 }
