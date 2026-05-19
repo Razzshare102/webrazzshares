@@ -1,126 +1,230 @@
 import { useState } from 'react'
-import { Shield, Key, Loader2, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react'
+import {
+  Shield, Key, Loader2, CheckCircle2, ExternalLink, User,
+  AlertTriangle, Globe, Database, Zap, Copy, Check, Info, LogOut
+} from 'lucide-react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
+/* copy button */
+function CopyText({ text }) {
+  const [done, setDone] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(text).catch(() => {})
+    setDone(true)
+    setTimeout(() => setDone(false), 1800)
+  }
+  return (
+    <div className="flex items-center gap-2 mt-1 p-2.5 rounded-lg"
+      style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
+      <code className="text-xs text-gray-300 flex-1 font-mono truncate">{text}</code>
+      <button onClick={copy} className="text-gray-500 hover:text-gray-300 flex-shrink-0">
+        {done ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+      </button>
+    </div>
+  )
+}
+
+/* Section card */
+function Section({ icon: Icon, iconColor, title, subtitle, children }) {
+  return (
+    <div className="p-5 rounded-2xl" style={{ background:'rgba(255,255,255,0.025)', border:'1px solid rgba(255,255,255,0.07)' }}>
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background:`${iconColor}12`, border:`1px solid ${iconColor}25` }}>
+          <Icon size={16} style={{ color: iconColor }} />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">{title}</h3>
+          {subtitle && <p className="text-gray-500 text-xs mt-0.5">{subtitle}</p>}
+        </div>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export default function AdminSettings() {
-  const { user } = useAuth()
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const { user, signOut } = useAuth()
+  const navigate           = useNavigate()
+
+  const [newPw,    setNewPw]    = useState('')
+  const [confPw,   setConfPw]   = useState('')
+  const [pwLoad,   setPwLoad]   = useState(false)
+  const [pwSaved,  setPwSaved]  = useState(false)
+
+  const [delInput, setDelInput] = useState('')
+  const [delLoad,  setDelLoad]  = useState(false)
 
   const handlePasswordChange = async (e) => {
     e.preventDefault()
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords don't match")
-      return
-    }
-    if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters")
-      return
-    }
-    setLoading(true)
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (newPw !== confPw)     { toast.error("Passwords don't match"); return }
+    if (newPw.length < 8)     { toast.error('Minimum 8 characters');  return }
+    setPwLoad(true)
+    const { error } = await supabase.auth.updateUser({ password: newPw })
     if (error) toast.error(error.message)
     else {
-      toast.success('Password updated successfully!')
-      setNewPassword('')
-      setConfirmPassword('')
+      toast.success('Password updated!')
+      setPwSaved(true)
+      setNewPw(''); setConfPw('')
+      setTimeout(() => setPwSaved(false), 3000)
     }
-    setLoading(false)
+    setPwLoad(false)
   }
+
+  const handleSignOut = async () => {
+    await signOut()
+    toast.success('Signed out')
+    navigate('/admin')
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '(not configured)'
 
   return (
     <AdminLayout>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-5">
+
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white">Settings</h2>
-          <p className="text-gray-500 text-sm">Manage your admin account settings</p>
+          <p className="text-gray-500 text-sm mt-0.5">Manage your account and deployment configuration</p>
         </div>
 
-        <div className="space-y-5">
-          {/* Account Info */}
-          <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Shield size={16} className="text-cyan-400" />
-              <h3 className="text-white font-semibold">Account Information</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-white/5">
-                <span className="text-gray-400 text-sm">Email</span>
-                <span className="text-white text-sm">{user?.email}</span>
+        {/* ── Account info ── */}
+        <Section icon={User} iconColor="#00d4ff" title="Account Information" subtitle="Your admin profile details">
+          <div className="space-y-0 divide-y divide-white/[0.05]">
+            {[
+              { label:'Email address', value: user?.email || '—' },
+              { label:'User ID',       value: user?.id?.slice(0,16) + '…' || '—' },
+              { label:'Role',          value: 'Administrator', badge:true },
+              { label:'Auth provider', value: 'Supabase Email Auth' },
+              { label:'Session',       value: user ? 'Active' : 'None', green: !!user },
+            ].map(({ label, value, badge, green }) => (
+              <div key={label} className="flex items-center justify-between py-3">
+                <span className="text-gray-500 text-sm">{label}</span>
+                {badge ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    style={{ background:'rgba(0,212,255,0.1)', color:'#00d4ff', border:'1px solid rgba(0,212,255,0.2)' }}>
+                    {value}
+                  </span>
+                ) : (
+                  <span className="text-sm font-medium" style={{ color: green ? '#34d399' : '#e2e8f0' }}>{value}</span>
+                )}
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-white/5">
-                <span className="text-gray-400 text-sm">Role</span>
-                <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(0,212,255,0.1)', color: '#00d4ff', border: '1px solid rgba(0,212,255,0.2)' }}>
-                  Administrator
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-gray-400 text-sm">Auth Provider</span>
-                <span className="text-gray-300 text-sm">Supabase</span>
-              </div>
-            </div>
+            ))}
           </div>
+        </Section>
 
-          {/* Change password */}
-          <div className="p-5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Key size={16} className="text-purple-400" />
-              <h3 className="text-white font-semibold">Change Password</h3>
+        {/* ── Change password ── */}
+        <Section icon={Key} iconColor="#7c3aed" title="Change Password" subtitle="Update your admin account password">
+          <form onSubmit={handlePasswordChange} className="space-y-3">
+            <div>
+              <label className="block text-gray-500 text-xs mb-1.5">New Password</label>
+              <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
+                className="input-field text-sm" placeholder="Min. 8 characters" required minLength={8} />
+              {newPw.length > 0 && (
+                <div className="mt-1.5 h-1 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.06)' }}>
+                  <div className="h-full rounded-full transition-all duration-300" style={{
+                    width: `${Math.min((newPw.length / 16) * 100, 100)}%`,
+                    background: newPw.length < 8 ? '#f87171' : newPw.length < 12 ? '#fb923c' : '#34d399',
+                  }} />
+                </div>
+              )}
             </div>
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              <div>
-                <label className="block text-gray-400 text-xs mb-1">New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="Minimum 8 characters"
-                  required
-                  minLength={8}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="Repeat password"
-                  required
-                />
-              </div>
-              <button type="submit" disabled={loading} className="btn-primary text-white text-sm py-2.5 w-full justify-center">
-                {loading ? <><Loader2 size={14} className="animate-spin" /> Updating...</> : <><Key size={14} /> Update Password</>}
-              </button>
-            </form>
-          </div>
+            <div>
+              <label className="block text-gray-500 text-xs mb-1.5">Confirm Password</label>
+              <input type="password" value={confPw} onChange={e => setConfPw(e.target.value)}
+                className="input-field text-sm" placeholder="Repeat new password" required />
+              {confPw.length > 0 && newPw !== confPw && (
+                <p className="text-red-400 text-xs mt-1">Passwords don't match</p>
+              )}
+            </div>
+            <button type="submit" disabled={pwLoad}
+              className="btn-primary text-white w-full justify-center py-2.5 text-sm">
+              {pwLoad  ? <><Loader2 size={14} className="animate-spin" /> Updating…</> :
+               pwSaved ? <><CheckCircle2 size={14} /> Password Updated!</> :
+                         <><Key size={14} /> Update Password</>}
+            </button>
+          </form>
+        </Section>
 
-          {/* Supabase setup info */}
-          <div
-            className="p-5 rounded-2xl"
-            style={{ background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)' }}
-          >
-            <h3 className="text-cyan-400 font-semibold text-sm mb-3 flex items-center gap-2">
-              <AlertCircle size={15} /> Supabase Setup Required
-            </h3>
-            <div className="space-y-2 text-gray-400 text-xs leading-relaxed">
-              <p>To fully activate the admin dashboard:</p>
-              <ol className="list-decimal pl-4 space-y-1">
-                <li>Create a Supabase project at <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline inline-flex items-center gap-0.5">supabase.com <ExternalLink size={9} /></a></li>
-                <li>Run the SQL schema from <code className="bg-white/5 px-1 rounded">src/lib/supabaseSchema.sql</code></li>
-                <li>Add your project URL and anon key to <code className="bg-white/5 px-1 rounded">.env</code></li>
-                <li>Create a user in Supabase Auth with the admin email/password</li>
-                <li>Redeploy to Vercel with the environment variables set</li>
-              </ol>
+        {/* ── Supabase config ── */}
+        <Section icon={Database} iconColor="#f472b6" title="Supabase Configuration" subtitle="Your backend connection settings">
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-500 text-xs mb-1">Project URL</p>
+              <CopyText text={supabaseUrl} />
+            </div>
+            <div className="flex items-start gap-2.5 p-3.5 rounded-xl"
+              style={{ background:'rgba(0,212,255,0.04)', border:'1px solid rgba(0,212,255,0.12)' }}>
+              <Info size={13} className="text-cyan-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-gray-400 leading-relaxed space-y-1">
+                <p className="font-medium text-cyan-400">Setup Checklist</p>
+                {[
+                  'Create a Supabase project at supabase.com',
+                  'Run src/lib/supabaseSchema.sql in the SQL editor',
+                  'Create an auth user with your admin email/password',
+                  'Add VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY to .env',
+                  'Redeploy on Vercel with env vars set',
+                ].map((step, i) => (
+                  <p key={i} className="flex items-start gap-1.5">
+                    <span className="text-cyan-600 font-mono flex-shrink-0">{i+1}.</span> {step}
+                  </p>
+                ))}
+              </div>
+            </div>
+            <a href="https://supabase.com" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-cyan-400 hover:underline">
+              Open Supabase Dashboard <ExternalLink size={10} />
+            </a>
+          </div>
+        </Section>
+
+        {/* ── Deployment ── */}
+        <Section icon={Zap} iconColor="#34d399" title="Vercel Deployment" subtitle="Production hosting configuration">
+          <div className="space-y-3">
+            {[
+              { label:'VITE_SUPABASE_URL',      desc:'Your Supabase project URL'         },
+              { label:'VITE_SUPABASE_ANON_KEY', desc:'Your Supabase anon/public API key' },
+            ].map(({ label, desc }) => (
+              <div key={label} className="p-3 rounded-xl"
+                style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)' }}>
+                <code className="text-cyan-400 text-xs font-mono">{label}</code>
+                <p className="text-gray-600 text-xs mt-0.5">{desc}</p>
+              </div>
+            ))}
+            <a href="https://vercel.com/docs/environment-variables" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-green-400 hover:underline">
+              Vercel env vars docs <ExternalLink size={10} />
+            </a>
+          </div>
+        </Section>
+
+        {/* ── Sign out / danger zone ── */}
+        <Section icon={AlertTriangle} iconColor="#f87171" title="Danger Zone" subtitle="Irreversible actions — proceed with caution">
+          <div className="space-y-3">
+            <button onClick={handleSignOut}
+              className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-medium"
+              style={{ background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.2)', color:'#f87171' }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(248,113,113,0.12)' }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(248,113,113,0.06)' }}>
+              <LogOut size={15} /> Sign Out of Admin
+            </button>
+
+            <div className="p-4 rounded-xl"
+              style={{ background:'rgba(248,113,113,0.04)', border:'1px dashed rgba(248,113,113,0.2)' }}>
+              <p className="text-gray-500 text-xs">
+                To permanently delete your admin account, go to{' '}
+                <a href="https://supabase.com" target="_blank" rel="noopener noreferrer"
+                  className="text-red-400 hover:underline">Supabase → Authentication → Users</a>
+                {' '}and remove the user manually.
+              </p>
             </div>
           </div>
-        </div>
+        </Section>
+
       </div>
     </AdminLayout>
   )
