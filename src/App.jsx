@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 import { AuthProvider } from './contexts/AuthContext'
 import LoadingScreen from './components/layout/LoadingScreen'
@@ -108,6 +109,25 @@ function AnimatedRoutes() {
 
 function AppContent() {
   const [loaded, setLoaded] = useState(false)
+
+  // Show a one-time demo mode notice when Supabase is not configured
+  useEffect(() => {
+    if (!import.meta.env.VITE_SUPABASE_URL) {
+      setTimeout(() => {
+        toast('Running in demo mode — connect Supabase to enable CMS features', {
+          icon: '⚡',
+          duration: 6000,
+          style: {
+            background: '#0a1628',
+            color: '#67e8f9',
+            border: '1px solid rgba(0,212,255,0.2)',
+            borderRadius: '12px',
+            fontSize: '13px',
+          },
+        })
+      }, 2800)
+    }
+  }, [])
 
   return (
     <div style={{ background: '#020408', minHeight: '100vh' }}>

@@ -273,21 +273,25 @@ export default function HeroSection() {
 
               {/* Small orbiting dot */}
               <motion.div
-                className="absolute w-3 h-3 rounded-full"
-                style={{
-                  background: '#f472b6',
-                  boxShadow: '0 0 10px #f472b6',
-                  top: '50%',
-                  left: '50%',
-                  marginTop: '-6px',
-                  marginLeft: '-6px',
-                }}
+                className="absolute"
+                style={{ top: '50%', left: '50%', marginTop: '-6px', marginLeft: '-6px' }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-                transformTemplate={({ rotate }) =>
-                  `rotate(${rotate}) translateX(210px) rotate(-${rotate})`
-                }
-              />
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    background: '#f472b6',
+                    boxShadow: '0 0 10px #f472b6',
+                    transform: 'translateX(210px)',
+                  }}
+                />
+              </motion.div>
             </div>
           </motion.div>
         </div>

@@ -12,7 +12,7 @@ export const useSupabaseQuery = (table, options = {}) => {
       setLoading(true)
       let query = supabase.from(table).select(options.select || '*')
 
-      if (options.filter) {
+      if (options.filter && Object.keys(options.filter).length > 0) {
         Object.entries(options.filter).forEach(([key, value]) => {
           query = query.eq(key, value)
         })
@@ -55,7 +55,7 @@ export const usePortfolio = () => {
 // Testimonials hooks
 export const useTestimonials = (adminMode = false) => {
   return useSupabaseQuery('testimonials', {
-    filter: adminMode ? {} : { featured: true },
+    filter: adminMode ? undefined : { featured: true },
     order: { column: 'sort_order', ascending: true },
   })
 }
@@ -65,20 +65,25 @@ export const useHomepageContent = () => {
   const [content, setContent] = useState({})
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
+    setLoading(true)
+    try {
       const { data } = await supabase.from('homepage_content').select('*')
       if (data) {
         const map = {}
         data.forEach(item => { map[item.key] = item.value })
         setContent(map)
       }
+    } catch (err) {
+      console.error('Error fetching homepage content:', err)
+    } finally {
       setLoading(false)
     }
-    fetchContent()
   }, [])
 
-  return { content, loading }
+  useEffect(() => { fetchContent() }, [fetchContent])
+
+  return { content, loading, refetch: fetchContent }
 }
 
 // Social links hook
