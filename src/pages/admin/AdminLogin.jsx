@@ -2,46 +2,71 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, LogIn, AlertCircle, Loader2, Shield, Zap, Lock } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Loader2, Shield, Zap, Lock, Flame } from 'lucide-react'
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('')
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState('')
 
-  const { signIn } = useAuth()
-  const navigate = useNavigate()
+  const { signIn }  = useAuth()
+  const navigate    = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
+
     const { error } = await signIn(email, password)
+
     if (error) {
-      setError('Invalid email or password. Please try again.')
+      // Map Firebase error codes to friendly messages
+      const code = error?.code || ''
+      if (code.includes('user-not-found') || code.includes('wrong-password') || code.includes('invalid-credential')) {
+        setError('Invalid email or password. Please try again.')
+      } else if (code.includes('too-many-requests')) {
+        setError('Too many failed attempts. Please wait a few minutes.')
+      } else if (code.includes('network-request-failed')) {
+        setError('Network error. Check your connection and try again.')
+      } else {
+        setError(error.message || 'Sign-in failed. Please try again.')
+      }
     } else {
       navigate('/admin/dashboard')
     }
+
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{ background: '#020408' }}>
+    <div
+      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+      style={{ background: '#020408' }}
+    >
       {/* Background orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #00d4ff 0%, transparent 70%)', filter: 'blur(60px)' }} />
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[400px] rounded-full opacity-8 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #7c3aed 0%, transparent 70%)', filter: 'blur(80px)' }} />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] rounded-full opacity-6 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #f472b6 0%, transparent 70%)', filter: 'blur(80px)' }} />
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-10 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, #00d4ff 0%, transparent 70%)', filter: 'blur(60px)' }}
+      />
+      <div
+        className="absolute bottom-0 left-1/4 w-[500px] h-[400px] rounded-full opacity-8 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, #7c3aed 0%, transparent 70%)', filter: 'blur(80px)' }}
+      />
+      <div
+        className="absolute bottom-0 right-1/4 w-[400px] h-[300px] rounded-full opacity-6 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, #f472b6 0%, transparent 70%)', filter: 'blur(80px)' }}
+      />
 
       {/* Grid pattern */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
-        backgroundImage: 'linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px)',
-        backgroundSize: '50px 50px'
-      }} />
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px)',
+          backgroundSize: '50px 50px',
+        }}
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
@@ -58,15 +83,24 @@ export default function AdminLogin() {
             className="inline-block"
           >
             <div className="relative inline-flex items-center justify-center">
-              <div className="absolute inset-0 rounded-2xl blur-xl opacity-60"
-                style={{ background: 'linear-gradient(135deg, #00d4ff, #7c3aed)' }} />
-              <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-display font-black"
-                style={{ background: 'linear-gradient(135deg, #00d4ff, #7c3aed)', boxShadow: '0 0 40px rgba(0,212,255,0.4)' }}>
+              <div
+                className="absolute inset-0 rounded-2xl blur-xl opacity-60"
+                style={{ background: 'linear-gradient(135deg, #00d4ff, #7c3aed)' }}
+              />
+              <div
+                className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-display font-black"
+                style={{ background: 'linear-gradient(135deg, #00d4ff, #7c3aed)', boxShadow: '0 0 40px rgba(0,212,255,0.4)' }}
+              >
                 R
               </div>
             </div>
           </motion.div>
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
             <h1 className="text-2xl font-display font-bold neon-text mt-4">RazzShares</h1>
             <p className="text-gray-500 text-sm mt-1">Admin Control Panel</p>
           </motion.div>
@@ -85,19 +119,23 @@ export default function AdminLogin() {
           }}
         >
           {/* Top glow line */}
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.6), rgba(124,58,237,0.5), transparent)' }} />
+          <div
+            className="absolute top-0 left-0 right-0 h-px"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.6), rgba(124,58,237,0.5), transparent)' }}
+          />
 
           <div className="p-8">
             {/* Header */}
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)' }}>
-                <Shield size={15} className="text-cyan-400" />
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(255,104,29,0.12)', border: '1px solid rgba(255,104,29,0.25)' }}
+              >
+                <Flame size={15} className="text-orange-400" />
               </div>
               <div>
                 <h2 className="text-white font-semibold text-sm">Secure Admin Access</h2>
-                <p className="text-gray-600 text-xs">Protected by Supabase Auth</p>
+                <p className="text-gray-600 text-xs">Powered by Firebase Auth</p>
               </div>
             </div>
 
@@ -159,7 +197,7 @@ export default function AdminLogin() {
                 style={{ opacity: loading ? 0.8 : 1 }}
               >
                 {loading
-                  ? <><Loader2 size={15} className="animate-spin" /> Authenticating...</>
+                  ? <><Loader2 size={15} className="animate-spin" /> Authenticating…</>
                   : <><Lock size={15} /> Sign In to Dashboard</>
                 }
               </button>
@@ -168,9 +206,9 @@ export default function AdminLogin() {
             {/* Security badges */}
             <div className="flex items-center justify-center gap-4 mt-5 pt-5 border-t border-white/5">
               {[
-                { icon: Shield, label: 'JWT Secured' },
-                { icon: Lock,   label: 'Encrypted' },
-                { icon: Zap,    label: 'Supabase Auth' },
+                { icon: Shield, label: 'JWT Secured'     },
+                { icon: Lock,   label: 'Encrypted'       },
+                { icon: Flame,  label: 'Firebase Auth'   },
               ].map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-center gap-1 text-gray-700 text-xs">
                   <Icon size={10} />
