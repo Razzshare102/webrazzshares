@@ -1,10 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import {
-  auth,
-  firebaseSignIn,
-  firebaseSignOut,
-  onAuthStateChanged,
-} from '../lib/firebase'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
 
@@ -16,30 +11,42 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user,    setUser]    = useState(null)
+  const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Subscribe to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser ?? null)
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
       setLoading(false)
     })
-    return unsubscribe
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  /** Sign in with email + password */
+  /** Sign in with email + password via Supabase */
   const signIn = async (email, password) => {
-    const { user, error } = await firebaseSignIn(email, password)
-    return { data: user ? { user } : null, error }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    return { data, error }
   }
 
-  /** Sign out current user */
+  /** Sign out via Supabase */
   const signOut = async () => {
-    return await firebaseSignOut()
+    const { error } = await supabase.auth.signOut()
+    return { error }
   }
 
   const value = {
     user,
+    session,
     loading,
     signIn,
     signOut,
